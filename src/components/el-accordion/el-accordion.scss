@@ -1,0 +1,41 @@
+.el-accordion {
+  margin: 1rem 0;
+  font-family: var(--font-family);
+
+  &__holder {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    width: fit-content;
+    $this: &;
+    border-bottom: solid 1px #fff;
+
+    &:hover {
+      #{$this}--icn {
+        transform: rotate(45deg);
+      }
+    }
+
+    &--icn {
+      transition: transform .2s;
+
+      i {
+        color: #fff;
+      }
+    }
+  }
+
+  &__heading {
+    margin-right: 1rem;
+
+    h1 {
+      color: #fff;
+      font-size: 2.5rem;
+    }
+  }
+
+  &__container {
+    // display: none;
+  }
+}

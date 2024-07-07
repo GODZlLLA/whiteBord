@@ -1,0 +1,28 @@
+.el-map {
+  max-width: 800px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  position: relative;
+
+  &__inner {
+    width: inherit;
+
+    img {
+      display: block;
+      width: 100%;
+    }
+  }
+
+  .canvas-container {
+    position: absolute !important;
+    z-index: 999;
+
+    canvas {
+      // width: 100% !important;
+      // max-height: 100%;
+    }
+  }
+}

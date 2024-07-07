@@ -1,0 +1,15 @@
+body {
+  // background-image: url('/common/img/background.jpg');
+  // background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-color: var(--application-color);
+}
+
+.main {
+  position: relative;
+}
+
+.inner {
+  display: flex;
+}

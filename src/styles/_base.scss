@@ -1,0 +1,298 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: var(--font-family);
+  font-display: swap;
+  -webkit-font-feature-settings: "pkna";
+  font-feature-settings: "pkna";
+  line-height: var(--line-height--root);
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  font-size: .625rem; // あえて可変サイズは未使用にしている（PCで縮めたときの見た目を優先するため）
+
+  // IEの場合、CSSVars処理が完了するまで全体を非表示にしておく
+  // JS発火前に反映させる必要があるため、あえてUAではなくCSSハックを利用
+  _:-ms-lang(x)::-ms-backdrop,
+  &:not([data-was-applied-css-vars="true"]) {
+    opacity: 0;
+  }
+}
+
+body {
+  overflow: hidden;
+  overflow-y: scroll; // 短いページでもスクロールバーを表示させる
+  scroll-behavior: smooth;
+  text-rendering: optimizeSpeed;
+  line-height: inherit;
+  margin: 0;
+  color: var(--txt-color--default);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  word-break: break-all;
+  -webkit-print-color-adjust: exact;
+  font-size: 1.4rem;
+  min-width: 320px;
+  max-width: 100%;
+  width: 100%;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  aspect-ratio: attr(width) / attr(height);
+  display: block;
+}
+
+article>*+* {
+  margin-top: 1em;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+select {
+  background-color: #fff;
+  border: 1px solid var(--border-color--input-gray);
+  appearance: none;
+
+  &::-ms-expand {
+    display: none;
+  }
+}
+
+input[type="text"],
+input[type="tel"],
+textarea {
+  background-color: var(--bg-color--section-k-gray);
+  border: 1px solid var(--border-color--input-gray);
+
+  &::placeholder {
+    color: var(--txt-color--placeholder);
+  }
+}
+
+button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  appearance: none;
+  color: inherit;
+  text-align: left;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin: 0;
+  padding: 0;
+}
+
+p {
+  margin: 0;
+}
+
+br {
+  &.hide-on-pc {
+
+    @media print,
+    screen and (min-width: 641px) {
+      display: none;
+    }
+  }
+
+  &.hide-on-sp {
+    @media only screen and (max-width: 640px) {
+      display: none;
+    }
+  }
+}
+
+dd,
+dt,
+li,
+p,
+pre,
+td,
+th {
+  word-break: break-strict;
+  -ms-word-break: break-strict;
+  -ms-line-break: strict;
+  line-break: strict;
+}
+
+dd {
+  margin: 0;
+}
+
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+td,
+th {
+  padding: 0;
+  text-align: left;
+}
+
+li,
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+figure {
+  margin: 0;
+}
+
+abbr[title] {
+  border-bottom: none;
+  cursor: default;
+  text-decoration: none;
+}
+
+mark {
+  background-color: transparent;
+  color: inherit;
+}
+
+em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--txt-color--red);
+}
+
+a {
+  color: var(--base-color);
+
+  &[href*="tel:"] {
+    html:not([data-device-type="mobile"]) & {
+      pointer-events: none;
+      // color: inherit;
+      text-decoration: none;
+    }
+  }
+}
+
+i {
+  &[aria-hidden="true"] {
+    >svg {
+      width: 100%;
+      height: 100%;
+      vertical-align: top;
+      // fill: currentColor;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *:not(.no-transition) {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-hide-if-mailpresence="true"] {
+  &[aria-hidden="true"] {
+    display: none;
+  }
+}
+
+[data-is-fax="true"] a {
+  pointer-events: none;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* data-print-hide="true"で印刷時に非表示になる */
+@media print {
+
+  // ieの時display: none;にするとその他の要素が拡大表示されるため要素を消さず疑似非表示にする
+  [data-browser-name="ie"] {
+    [data-hide-print="true"] {
+      opacity: 0;
+      visibility: hidden;
+      height: 0px;
+      padding: 0;
+      margin: 0;
+    }
+  }
+
+  // その他のブラウザは問題ないので通常非表示
+  [data-hide-print="true"] {
+    display: none;
+  }
+}
+
+[data-pc-hide="true"] {
+
+  @media print,
+  screen and (min-width: 769px) {
+    display: none;
+  }
+}
+
+[data-sp-hide="true"] {
+  @media only screen and (max-width: 768px) {
+    display: none;
+  }
+}
+
+i {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: block;
+  
+  svg {
+    width: inherit;
+    height: inherit;
+  }
+}

@@ -1,0 +1,20 @@
+.el-edit {
+  &__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__item {
+    transition: opacity 0.25s;
+    padding: .5rem;
+    width: fit-content;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    i {
+      color: #fff;
+    }
+  }
+}

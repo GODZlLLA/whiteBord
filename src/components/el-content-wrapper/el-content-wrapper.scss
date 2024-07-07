@@ -1,0 +1,11 @@
+.el-content-wrapper {
+  min-height: calc(100vh - 63px);
+
+  &__inner {
+    background: #000;
+    height: 100%;
+    padding: 1rem;
+    min-height: inherit;
+    color: #fff;
+  }
+}

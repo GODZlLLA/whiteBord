@@ -1,0 +1,50 @@
+.el-mapping {
+  $this: &;
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__item {
+    transition: opacity 0.25s;
+    padding: .5rem;
+    width: fit-content;
+
+    &:not(.dropdown) {
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+
+    &.dropdown {
+      position: relative;
+
+      .dropdown-content {
+        position: absolute;
+        top: .5rem;
+        right: -3.5rem;
+        display: flex;
+        flex-direction: column;
+
+        #{$this}__dropdown {
+          background-color: #fff;
+          transition: opacity 0.25s;
+          padding: .5rem;
+
+          &:hover {
+            opacity: 0.8;
+          }
+        }
+
+        i {
+          color: #000;
+        }
+      }
+    }
+
+    i {
+      color: #fff;
+    }
+  }
+}

@@ -1,0 +1,48 @@
+.el-sizing {
+  .el-zoom {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+
+    > select {
+      padding: 1rem 1.5rem;
+      font-size: 1.5rem;
+      width: 10rem;
+      cursor: pointer;
+      outline: none;
+      border: solid 1px #ddd;
+    }
+
+    span {
+      font-size: 1.4rem;
+      color: #fff;
+      margin-bottom: .5rem;
+    }
+  }
+
+  .el-reset-position {
+    width: fit-content;
+    position: relative;
+    margin-bottom: 1rem;
+
+    button {
+      background-color: #fff;
+      padding: 1rem;
+      color: #000;
+      width: 100%;
+      border-radius: .4rem;
+      box-shadow: 0 .5rem .5rem rgba(#000, .2);
+      opacity: 1;
+      transition: box-shadow .3s, opacity .3s;
+
+      &:hover {
+        opacity: .8;
+      }
+
+      &:active {
+        margin-top: 0.2rem;
+        box-shadow: 0 .1rem .3rem rgba(#000, .2);
+      }
+    }
+  }
+}

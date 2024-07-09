@@ -1,6 +1,5 @@
 // @ts-nocheck
 import React, { createContext, useState, useRef, useEffect, useContext } from 'react';
-import useToggle from 'react-use-toggle';
 // https://www.npmjs.com/package/fabric?activeTab=readme キャンバスを簡単に操作できるフレームワーク 詳しい設定とかここを参照
 import { fabric } from 'fabric';
 // https://www.npmjs.com/package/react-colorful カラー調整出来るやつ
@@ -11,15 +10,11 @@ import { onKeyDown } from './keydown-event';
 // 各種コンポーネント
 import Dropdown from './Dropdwon.tsx';
 
-// 各種設定import
-import textBox from './settings/textbox';
-import circle from './settings/circle';
-import rect from './settings/rect';
-import Triangle from './settings/triangle';
-import Arrow from './settings/arrow';
-import lines from './settings/line';
-import sticky from './settings/sticky';
-import Export from './canvas-downloader';
+// functions
+import { ontoolbar } from '../function/toolbar';
+import { editMenu } from '../function/editMenu';
+import { fileChange } from '../function/fileChange';
+import { colorChange } from '../function/colorChange';
 
 // import アイコン
 import {
@@ -42,7 +37,7 @@ import {
   RedoIcon,
   GeometryIcon,
   CogIcon
-} from './settings/icons/icon';
+} from '../icons/icon';
 
 const WhiteboardContext = createContext(null);
 const initState = {
@@ -59,6 +54,7 @@ const WhiteboardStore = (props) => {
   )
 }
 
+// Canvasのinitializeメソッドを拡張して、履歴の初期化を追加
 fabric.Canvas.prototype.initialize = (function (originalFn) {
   return function (...args) {
     originalFn.call(this, ...args);
@@ -67,6 +63,7 @@ fabric.Canvas.prototype.initialize = (function (originalFn) {
   };
 })(fabric.Canvas.prototype.initialize);
 
+// Canvasのdisposeメソッドを拡張して、履歴の破棄を追加
 fabric.Canvas.prototype.dispose = (function (originalFn) {
   return function (...args) {
     originalFn.call(this, ...args);
@@ -75,11 +72,13 @@ fabric.Canvas.prototype.dispose = (function (originalFn) {
   };
 })(fabric.Canvas.prototype.dispose);
 
-fabric.Canvas.prototype._historyNext = function () {
+// 現在のCanvasの状態をJSON文字列として取得
+fabric.Canvas.prototype._historyNext = function (): string {
   return JSON.stringify(this.toDatalessJSON(this.extraProps));
 };
 
-fabric.Canvas.prototype._historyEvents = function () {
+// 履歴に関連するイベントを定義
+fabric.Canvas.prototype._historyEvents = function (): Record<string, (e: fabric.IEvent) => void> {
   return {
     'object:added': this._historySaveAction,
     'object:removed': this._historySaveAction,
@@ -88,7 +87,8 @@ fabric.Canvas.prototype._historyEvents = function () {
   }
 };
 
-fabric.Canvas.prototype._historyInit = function () {
+// 履歴の初期化
+fabric.Canvas.prototype._historyInit = function (): void {
   this.historyUndo = [];
   this.historyRedo = [];
   this.extraProps = ['selectable'];
@@ -97,12 +97,13 @@ fabric.Canvas.prototype._historyInit = function () {
   this.on(this._historyEvents());
 };
 
-fabric.Canvas.prototype._historyDispose = function () {
+// 履歴の破棄
+fabric.Canvas.prototype._historyDispose = function (): void {
   this.off(this._historyEvents());
 };
 
-fabric.Canvas.prototype._historySaveAction = function () {
-
+// 履歴にアクションを保存
+fabric.Canvas.prototype._historySaveAction = function (): void {
   if (this.historyProcessing) return;
 
   const json = this.historyNextState;
@@ -111,7 +112,8 @@ fabric.Canvas.prototype._historySaveAction = function () {
   this.fire('history:append', { json: json });
 };
 
-fabric.Canvas.prototype.undo = function (callback) {
+// Undo操作
+fabric.Canvas.prototype.undo = function (callback?: () => void): void {
   this.historyProcessing = true;
   const history = this.historyUndo.pop();
 
@@ -124,7 +126,8 @@ fabric.Canvas.prototype.undo = function (callback) {
   }
 };
 
-fabric.Canvas.prototype.redo = function (callback) {
+// Redo操作
+fabric.Canvas.prototype.redo = function (callback?: () => void): void {
   this.historyProcessing = true;
   const history = this.historyRedo.pop();
 
@@ -137,7 +140,8 @@ fabric.Canvas.prototype.redo = function (callback) {
   }
 };
 
-fabric.Canvas.prototype._loadHistory = function (history, event, callback) {
+// 履歴をロード
+fabric.Canvas.prototype._loadHistory = function (history: string, event: string, callback?: () => void): void {
   var that = this;
 
   this.loadFromJSON(history, function () {
@@ -149,15 +153,15 @@ fabric.Canvas.prototype._loadHistory = function (history, event, callback) {
   });
 };
 
-fabric.Canvas.prototype.clearHistory = function () {
+// 履歴をクリア
+fabric.Canvas.prototype.clearHistory = function (): void {
   this.historyUndo = [];
   this.historyRedo = [];
   this.fire('history:clear');
 };
 
+
 const bottomMenu = [
-  // { title: 'Show Object Options', icon: React.createElement(CogIcon, null) },
-  // { title: 'Grid', icon: React.createElement(GridIcon, null) },
   { title: 'Erase', icon: React.createElement(EraseIcon, null) },
   { title: 'Undo', icon: React.createElement(UndoIcon, null) },
   { title: 'Redo', icon: React.createElement(RedoIcon, null) },
@@ -190,14 +194,6 @@ function CanvasEditor({ onChange, options }) {
   const [objOptions, setObjOptions] = useState(Object.assign({ stroke: '#000000', fontSize: 40, fill: 'rgba(255, 255, 255, 0.0)', strokeWidth: 5 }, options));
   const [colorProp, setColorProp] = useState('background');
   const [showObjOptions, setShowObjOptions] = useState(false);
-  const [grid, setGrid] = useToggle(false);
-  const gridStyle = Object.assign({
-    backgroundImage: 'linear-gradient(rgba(130, 130, 130, 0.5) 1px, transparent 1px),linear-gradient(90deg, rgba(130, 130, 130, 0.5) 1px, transparent 1px),linear-gradient(rgba(130, 130, 130, 0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(130, 130, 130, 0.25) 1px, transparent 1px)',
-    backgroundSize: '100px 100px, 100px 100px, 20px 20px, 20px 20px',
-    backgroundPosition: '20px 20px, 20px 20px, 20px 20px, 20px 20px',
-    backgroundBlendMode: 'difference'
-  })
-
   const canvasModifiedCallback = () => {
     if (currentCanvas) {
       onChange(currentCanvas.toDatalessJSON());
@@ -250,159 +246,27 @@ function CanvasEditor({ onChange, options }) {
     };
   }, []);
 
-  const onToolbar = (objName) => {
-    let objType;
-    switch (objName) {
-      case 'Select':
-        editor.isDrawingMode = false;
-        editor.discardActiveObject().renderAll();
-        break;
-      case 'Draw':
-        if (editor) {
-          editor.isDrawingMode = true;
-          editor.freeDrawingBrush.width = Number(localStorage.getItem('freeDrawingBrush.width')) || 5;
-          editor.freeDrawingBrush.color = localStorage.getItem('freeDrawingBrush.color') || '#000000';
-        }
-        break;
-      case 'Text':
-        editor.isDrawingMode = false;
-        objType = textBox(objOptions);
-        break;
-      case 'Circle':
-        editor.isDrawingMode = false;
-        objType = circle(objOptions);
-        break;
-      case 'Rect':
-        editor.isDrawingMode = false;
-        objType = rect(objOptions);
-        break;
-      case 'Triangle':
-        editor.isDrawingMode = false;
-        objType = Triangle(objOptions);
-        break;
-      case 'Arrow':
-        editor.isDrawingMode = false;
-        objType = Arrow(objOptions);
-        break;
-      case 'Line':
-        editor.isDrawingMode = false;
-        objType = lines(objOptions);
-        break;
-      case 'Sticky':
-        objType = sticky(objOptions);
-        break;
-    }
-    if (objName !== 'Draw' && objName !== 'Select') {
-      editor.add(objType);
-      editor.centerObject(objType);
-    }
-    editor.renderAll();
-  };
+  // ツールバー
+  const onToolbar = (objName: string) => {
+    ontoolbar(objName, editor, objOptions);
+  }
 
   // 各種編集メンバーの設定
-  const onEditMenu = (actionName) => {
-    switch (actionName) {
-      case 'Show Object Options':
-        setShowObjOptions(!showObjOptions);
-        break;
-      case 'Export':
-        Export();
-      case 'Save':
-        localStorage.setItem('whiteboard-cache', JSON.stringify(editor.toDatalessJSON()));
-        break;
-      case 'Erase':
-        const activeObject = editor.getActiveObject();
-        if (activeObject) {
-          editor.remove(activeObject);
-        }
-        break;
-      case 'ToJson':
-        const content = JSON.stringify(editor.toDatalessJSON());
-        const link = document.createElement("a");
-        const file = new Blob([content], { type: 'application/json' });
-        link.setAttribute('download', 'whiteboard.json');
-        link.href = URL.createObjectURL(file);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        break;
-      case 'Undo':
-        editor.undo();
-        break;
-      case 'Redo':
-        editor.redo();
-        break;
-      case 'Clear':
-        const message = '書き込んだ内容をすべて削除しますか？';
-        if (confirm(message)) {
-          localStorage.removeItem('whiteboard-cache');
-          editor.clearHistory();
-          editor.clear();
-          editor.backgroundColor = '#fff';
-          editor.renderAll();
-        }
-        break;
-    }
+  const onEditMenu = (actionName: string) => {
+    editMenu(actionName, editor, showObjOptions, setShowObjOptions)
   };
 
   // http://fabricjs.com/docs/fabric.Image.html 設定とかここ
   const onFileChange = (e) => {
-    if (e.target.files.length < 1) return;
-    const inputFileName = e.target.name;
-    const file = e.target.files[0];
-    const fileType = file.type;
-    const url = URL.createObjectURL(file);
-
-    // jsonインポート
-    if (inputFileName === 'json') {
-      fetch(url).then(r => r.json())
-        .then(json => {
-          editor.loadFromJSON(json);
-        });
-    } else {
-      // pngとかjpgの設定
-      if (fileType === 'image/png' || fileType === 'image/jpeg') {
-        fabric.Image.fromURL(url, function (img) {
-          // 画像サイズや比率を固定したまま初期に300px表示
-          img.scaleToWidth(300);
-          editor.centerObject(img);
-          editor.add(img);
-        });
-      }
-
-      // svg設定
-      if (fileType === 'image/svg+xml') {
-        fabric.loadSVGFromURL(url, function (objects, options) {
-          const svg = fabric.util.groupSVGElements(objects, options);
-          svg.scaleToWidth(180);
-          svg.scaleToHeight(180);
-          editor.centerObject(svg);
-          editor.add(svg);
-        });
-      }
-    };
+    fileChange(e, editor)
   }
 
-  const onRadioColor = (e) => setColorProp(e.target.value);
+  const onRadioColor = (e) => {
+    setColorProp(e.target.value);
+  }
 
   const onColorChange = (value) => {
-    const activeObj = editor.getActiveObject();
-    if (editor.isDrawingMode) {
-      editor.freeDrawingBrush.color = value;
-      localStorage.setItem('freeDrawingBrush.color', value);
-    }
-    if (activeObj) {
-      activeObj.set(colorProp, value);
-      const ops = Object.assign(Object.assign({}, objOptions), { [colorProp]: value, });
-      setObjOptions(ops);
-      editor.renderAll();
-    }
-    else {
-      if (colorProp === 'backgroundColor') {
-        editor.backgroundColor = value;
-        editor.renderAll();
-      }
-    }
+    colorChange(value, editor, colorProp, objOptions, setObjOptions)
   };
 
   const onOptionsChange = (e) => {
@@ -431,13 +295,9 @@ function CanvasEditor({ onChange, options }) {
     e.stopPropagation();
   };
 
-  const onLoadImage = () => {
-    inputImageFileRef.current.click();
-  };
+  const onLoadImage = () => inputImageFileRef.current.click();
 
-  const onLoadFromJson = () => {
-    inputJsonFileRef.current.click();
-  };
+  const onLoadFromJson = () => inputJsonFileRef.current.click();
 
   // 拡大率をもとに戻す
   const onZoomResetCanvas = (e) => {
@@ -490,7 +350,7 @@ function CanvasEditor({ onChange, options }) {
             <input ref={inputJsonFileRef} type="file" name='json' onChange={onFileChange} accept="application/json" hidden={true} />
           </div>}
         </div>
-        <div className='el-main-container' style={grid ? gridStyle : null}>
+        <div className='el-main-container'>
           <canvas id="concat" width="800" height="800" />
           <canvas className='canvas' ref={canvasRef} />
         </div>
@@ -539,11 +399,6 @@ function CanvasEditor({ onChange, options }) {
                 <span>座標をリセット</span>
               </button>
             </div>
-          </div>
-          <div className='el-change-grid'>
-            <button onClick={setGrid}>
-              背景枠線
-            </button>
           </div>
         </div>
       </div>

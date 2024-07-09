@@ -145,6 +145,7 @@ fabric.Canvas.prototype._loadHistory = function (history: string, event: string,
   var that = this;
 
   this.loadFromJSON(history, function () {
+    that.setBackgroundColor("#fff");
     that.renderAll();
     that.fire(event);
     that.historyProcessing = false;
@@ -216,9 +217,9 @@ function CanvasEditor({ onChange, options }) {
         canvas.on('object:modified', canvasModifiedCallback);
       }
 
-      canvas.setHeight(800);
-      canvas.setWidth(800);
-      canvas.backgroundColor = '#fff';
+      canvas.setHeight(parentRef.current.clientHeight);
+      canvas.setWidth(parentRef.current.clientWidth);
+      canvas.setBackgroundColor("#fff");
       canvas.renderAll();
       document.addEventListener('keydown', Keydown, false);
 
